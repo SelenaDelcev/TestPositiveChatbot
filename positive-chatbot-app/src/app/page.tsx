@@ -434,6 +434,7 @@ export default function Home() {
     };
   
     setMessages(prevMessages => [...prevMessages, newMessage]);
+    setInputVisible(true);
     setShowTypingIndicator(true);
     setUserSuggestQuestions([]);
   

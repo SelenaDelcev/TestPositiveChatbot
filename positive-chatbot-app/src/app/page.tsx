@@ -61,8 +61,8 @@ export default function Home() {
   const [sendButtonColor] = useState('#3d3d3d');
   const [customLinkColor] = useState('#f33b4b');
   const [baseUrl] = useState("https://chatappdemobackend.azurewebsites.net");
-  const [backgroundStartRgb] = useState(hexToRgb(backgroundColor));
   const [backgroundEndRgb] = useState(hexToRgb(backgroundColor));
+  const [backgroundStartRgb] = useState(hexToRgb(backgroundColor));
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [userScrolled, setUserScrolled] = useState<boolean>(false);
   const [deleteIconVisible] = useState(true);
@@ -73,10 +73,10 @@ export default function Home() {
   const [initialQuestionsVisible, setInitialQuestionsVisible] = useState(true);
   const [initialFirstQuestion] = useState('Želim da unapredim poslovanje');
   const [initialSecondQuestion] = useState('Potrebna mi je tehnička podrška');
-  const [initialThirdQuestion] = useState('Želim da unesem pitanje');
   const [feedbackIconVisible] = useState(true);
   const [voiceRecordIconVisible] = useState(true);
-  const [inputVisible, setInputVisible] = useState<boolean>(false);
+  const [liveChatButtonVisible, setLiveChatButtonVisible] = useState(false);
+  const [liveChatOpen, setLiveChatOpen] = useState(false);
 
   function hexToRgb(hex: any) {
     const bigint = parseInt(hex.slice(1), 16);
@@ -132,6 +132,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    
+  }, [liveChatOpen]);
+
+  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       console.log(event)
       if (event.data.type === 'main-url') {
@@ -177,6 +181,8 @@ export default function Home() {
 
   const handleToggle = () => {
     setOpenSpeedDial(!openSpeedDial);
+    setInitialQuestionsVisible(openSpeedDial);
+    setLiveChatButtonVisible(openSpeedDial);
   };
 
   const handleActionClick = (actionOnClick: () => void) => (event: React.MouseEvent) => {
@@ -373,6 +379,7 @@ export default function Home() {
     e.preventDefault();
 
     setInitialQuestionsVisible(false);
+    setLiveChatButtonVisible(true);
 
     const newMessage: { role: string; content: string; files: File[] } = {
       role: 'user',
@@ -434,7 +441,6 @@ export default function Home() {
     };
   
     setMessages(prevMessages => [...prevMessages, newMessage]);
-    setInputVisible(true);
     setShowTypingIndicator(true);
     setUserSuggestQuestions([]);
   
@@ -463,6 +469,7 @@ export default function Home() {
               { role: 'assistant', content: data.calendly, type: 'text' },
           ]);
           setShowTypingIndicator(false);
+          setLiveChatButtonVisible(true);
         } else {
           getEventSource();
         }
@@ -700,7 +707,34 @@ export default function Home() {
   ];
 
    return (
-    <div className="App">
+    <div className="App" style={{ overflow: 'hidden' }}>
+    {liveChatOpen ? (
+        <div className="iframe-container" style={{ height: '100vh', overflow: 'hidden' }}>
+          <iframe
+            src="https://tawk.to/chat/66e6323050c10f7a00aa2b4b/1i7pj83k2"
+            className="live-chat-iframe"
+            title="Live Chat"
+            style={{ width: '100%', height: '90%', border: 'none' }}
+          />
+          <div className='livechat'>
+            <Button
+              className="livechat"
+              variant="outlined"
+              onClick={() => setLiveChatOpen(false)}
+              style={{
+                border: 'none',
+                marginTop: '10px',
+                animation: 'fadeIn 0.3s ease-in-out 0.3s',
+                animationFillMode: 'both',
+                borderRadius: '20px',
+                fontSize: '12px'
+              }}
+            >
+              Vrati se na chatbot-a
+            </Button>
+          </div>
+        </div>
+      ) : (
       <div className="chat-container">
         <div className="messages" ref={containerRef}>
           {messages.map((message, index) => (
@@ -834,7 +868,6 @@ export default function Home() {
         </div>
         <div ref={messagesEndRef} />
         <div className="input-row-container">
-        {inputVisible && (
           <div className="input-row">
             <form onSubmit={handleSubmit} className="message-input">
               <div className="input-container">
@@ -891,7 +924,6 @@ export default function Home() {
               onChange={handleFileChange}
             />
           </div>
-        )}
           {!isAssistantResponding && userSuggestQuestions.length > 0 && suggestQuestions && (
             <div className="suggested-questions">
               {userSuggestQuestions.map((question, index) => (
@@ -899,12 +931,13 @@ export default function Home() {
                   key={index}
                   variant="outlined"
                   onClick={() => handleSuggestedQuestionClick(question)}
-                  style={{ 
-                    borderColor: 'white', 
+                  style={{
+                    border: 'none', 
                     marginBottom: '10px',
-                    animation: 'fadeIn 0.2s ease-in-out 0.2s', 
+                    animation: 'fadeIn 0.3s ease-in-out 0.3s',
                     animationFillMode: 'both',
-                    borderRadius: '20px'}}
+                    borderRadius: '20px',
+                    fontSize: '12px'}}
                 >
                   {question}
                 </Button>
@@ -920,12 +953,13 @@ export default function Home() {
                       handleSuggestedQuestionClick(initialFirstQuestion);
                       setInitialQuestionsVisible(false);
                     }}
-                    style={{ 
-                    borderColor: 'white', 
-                    marginBottom: '10px',
-                    animation: 'fadeIn 0.2s ease-in-out 0.2s', 
-                    animationFillMode: 'both',
-                    borderRadius: '20px'}}
+                    style={{
+                      border: 'none',
+                      marginBottom: '10px',
+                      animation: 'fadeIn 0.3s ease-in-out 0.3s', 
+                      animationFillMode: 'both',
+                      borderRadius: '20px',
+                      fontSize: '12px'}}
                   >
                     {initialFirstQuestion}
                   </Button>
@@ -937,38 +971,42 @@ export default function Home() {
                       handleSuggestedQuestionClick(initialSecondQuestion);
                       setInitialQuestionsVisible(false);
                     }}
-                    style={{ 
-                    borderColor: 'white', 
-                    marginBottom: '5px',
-                    animation: 'fadeIn 0.3s ease-in-out 0.3s',
-                    animationFillMode: 'both',
-                    borderRadius: '20px'}}
+                    style={{
+                      border: 'none', 
+                      marginBottom: '10px',
+                      animation: 'fadeIn 0.3s ease-in-out 0.3s', 
+                      animationFillMode: 'both',
+                      borderRadius: '20px',
+                      fontSize: '12px'}}
                   >
                     {initialSecondQuestion}
                   </Button>
                 )}
-                {initialThirdQuestion && (
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      setInputVisible(true);
-                      setInitialQuestionsVisible(false);
-                    }}
-                    style={{ 
-                    borderColor: 'white', 
-                    marginBottom: '5px',
-                    animation: 'fadeIn 0.3s ease-in-out 0.3s',
-                    animationFillMode: 'both',
-                    borderRadius: '20px'}}
-                  >
-                    {initialThirdQuestion}
-                  </Button>
-                )}
               </div>
           )}
+          {liveChatButtonVisible && (
+              <div className='livechat'>
+                <Button
+                  variant="outlined"
+                  onClick={() => setLiveChatOpen(true)}
+                  style={{
+                    border: 'none',
+                    marginBottom: '10px',
+                    animation: 'fadeIn 0.3s ease-in-out 0.3s',
+                    animationFillMode: 'both',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    justifyContent: 'center'
+                  }}
+                >
+                  Uključi operatera
+                </Button>
+                </div>
+              )}
           <div ref={messagesEndRef} />
         </div>
       </div>
+      )}
     </div>
   );
-};
+}

@@ -443,6 +443,7 @@ export default function Home() {
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setShowTypingIndicator(true);
     setUserSuggestQuestions([]);
+    setLiveChatButtonVisible(true);
   
     if (files.length > 0) {
       await handleFileSubmit(newMessage);
@@ -469,7 +470,6 @@ export default function Home() {
               { role: 'assistant', content: data.calendly, type: 'text' },
           ]);
           setShowTypingIndicator(false);
-          setLiveChatButtonVisible(true);
         } else {
           getEventSource();
         }
